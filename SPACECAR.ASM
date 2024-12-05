@@ -26,30 +26,30 @@ Pila    ENDS                                    ;If more than 512 bytes are used
 Dati    SEGMENT PARA
     ;strings that will be printed on the screen during the execution of the program
     ;note: 13 -> line start, 10 -> line break
-        mex1    db      '                         ----> S P A C E - C A R <----',13,10,'$' ;30 CHARACTERS -> 25 SPACES ON THE LEFT TO CENTER
-        mex2    db      ' The game consists of dodging asteroids and collecting as many coins',13,10,'$'
-        mex2b   db      ' as possible to set a new RECORD!',13,10,'$'
-        mex3    db      ' Use the arrow keys (Right and Left) to move',13,10,'$'
-        mex4    db      ' Hearts are lives, you can accumulate a maximum of 5',13,10,'$'
-        mex5    db      ' Once your lives run out, the game is over',13,10,'$'
-        mex6    db      ' Up/Down Arrow:  Increase/Decrease the level (speed)',13,10,'$'
-        mEsc    db      ' ESC:             Exit the game immediately',13,10,'$'
-        mPausa  db      ' P:               Pause the game',13,10,'$'
-        mInizio db      ' Press ENTER to start the race',13,10,'$'
+        msg1    db      '                         ----> S P A C E - C A R <----',13,10,'$' ;30 CHARACTERS -> 25 SPACES ON THE LEFT TO CENTER
+        msg2    db      ' The game consists of dodging asteroids and collecting as many coins',13,10,'$'
+        msg2b   db      ' as possible to set a new RECORD!',13,10,'$'
+        msg3    db      ' Use the arrow keys (Right and Left) to move',13,10,'$'
+        msg4    db      ' Hearts are lives, you can accumulate a maximum of 5',13,10,'$'
+        msg5    db      ' Once your lives run out, the game is over',13,10,'$'
+        msg6    db      ' Up/Down Arrow:  Increase/Decrease the level (speed)',13,10,'$'
+        msgEsc    db      ' ESC:             Exit the game immediately',13,10,'$'
+        mPause  db      ' P:               Pause the game',13,10,'$'
+        mStart db      ' Press ENTER to start the race',13,10,'$'
 
-        cInizio db      '                                   ','$'        ;to erase mInizio without clearing the screen
-        lEsci   db      'Press ENTER to return to DOS      ','$'
+        clearStart db      '                                   ','$'        ;to erase mStart without clearing the screen
+        exitLabel   db      'Press ENTER to return to DOS      ','$'
 
-        lPause  db      'PAUSE                              ','$'
-        lLose   db      'GAME OVER                          ','$'
-        lWin    db      'You reached the maximum score!     ','$'
+        pauseLabel  db      'PAUSE                              ','$'
+        gameOverLabel    db      'GAME OVER                          ','$'
+        winLabel    db      'You reached the maximum score!     ','$'
 
-        fScore  db      'Final score: ','$'
-        fLife   db      'Remaining lives: ','$'
+        finalScoreLabel  db      'Final score: ','$'
+        finalLifeLabel   db      'Remaining lives: ','$'
 
-        lDead   db      'YOU CRASHED INTO AN ASTEROID!      ','$'
-        lTasto  db      'Press a key to continue           ','$'
-        lInvio  db      'Press ENTER to continue           ','$'
+        deadLabel   db      'YOU CRASHED INTO AN ASTEROID!      ','$'
+        keyLabel  db      'Press a key to continue           ','$'
+        enterLabel  db      'Press ENTER to continue           ','$'
 
         mLife   db      'LIFE: ','$'
         mLevel  db      'LEVEL: ','$'
@@ -66,13 +66,13 @@ Dati    SEGMENT PARA
 
         maxScore dw     1000     ;maximum score to end the game
 
-        lVuoto  db      '                   ','$'
+        mssgdb  db      '                   ','$'
 
     ;variables for Random
-        PrimoIN  DB     00H           ; First execution flag (= 0 yes; <> 0 no)
-        Rnd_Lo   DW     ?             ; current 32-bit random number value
-        Rnd_Hi   DW     ?
-        Costante DW     8405H         ; Multiplier value
+        IsFirstExecution  DB     00H           ; First execution flag (= 0 yes; <> 0 no)
+        RandomValueLow   DW     ?             ; current 32-bit random number value
+        RandomValueHigh   DW     ?
+        MultiplierValue DW     8405H         ; Multiplier value
 
 Dati    ENDS
 
@@ -187,18 +187,18 @@ ENDM
 ;       CX ?? il contatore del ciclo
 Main:           CALL cls        ;clear screen
         setCur 0,0
-        stpMex mex1     ;print instructions on the screen
+        stpMex msg1     ;print instructions on the screen
         setCur 2,0
-        stpMex mex2
-        stpMex mex2b
-        stpMex mex3
-        stpMex mex4
-        stpMex mex5
-        stpMex mex6
-        stpMex mEsc
-        stpMex mPausa
+        stpMex msg2
+        stpMex msg2b
+        stpMex msg3
+        stpMex msg4
+        stpMex msg5
+        stpMex msg6
+        stpMex msgEsc
+        stpMex mPause
         setCur 11,1
-        stpMex lTasto
+        stpMex keyLabel
         CALL outCur
         CALL waitKey    ;wait for a key to continue
 
@@ -232,13 +232,13 @@ Start:          ;every time you hit an asteroid, you restart from here
 
 
         setCur 15,40    ;AREA WHERE MESSAGES ARE PRINTED
-        stpMex mInizio  ;start of level, waits for Enter key
+        stpMex mStart  ;start of level, waits for Enter key
         CALL outCur
 reqINVIO:       CALL waitKey    ;wait for the Enter key
         CMP AL,kINVIO
         JNE reqINVIO
         setCur 15,40
-        stpMex cInizio
+        stpMex clearStart
 
 
         ;CALL outCur    ;hide the cursor
@@ -255,7 +255,7 @@ Ciclo:          MOV CH,BYTE PTR tLevel   ;set the initial level (speed??)
 
         PUSH DX
         setCur 15,40    ;clear the interactive message
-        stpMex lVuoto   ;from the previous cycle
+        stpMex mssgdb   ;from the previous cycle
         POP DX
         CMP BL,'m'      ;if a coin is collected, increment the score
          JE addMon
@@ -347,7 +347,7 @@ I_Pause:        PUSH AX
         PUSH CX
         PUSH DX
         setCur 15,40    ;Write "PAUSE" in the MESSAGE area
-        stpMex lPause
+        stpMex pauseLabel
 Pause:          CALL waitKey    ;Wait for a key
         CMP AL,kESC     ;ESC key
         JE Esci2         ;Go to Exit
@@ -357,7 +357,7 @@ Pause:          CALL waitKey    ;Wait for a key
         JE F_Pause       ;End the Pause
         JMP Pause       ;Otherwise, continue the pause -> loop Pause
 F_Pause:        setCur 15,40    ;Clear the "PAUSE" text
-        stpMex lVuoto
+        stpMex mssgdb
         POP DX
         POP CX
         POP BX
@@ -434,7 +434,7 @@ Giu:            ;Down one level
           ADD AX,2
           MOV tLevel,AX
          setCur 6,50
-         stpMex lVuoto  ;Clear the previous levels to print fewer dots (otherwise the level decrement won't be visible)
+         stpMex mssgdb  ;Clear the previous levels to print fewer dots (otherwise the level decrement won't be visible)
          setCur 6,50    ;Position the cursor in the LEVEL zone:
          stpChrC 09H,level,09H  ;Print the level number (blue dots)
          setCur 15,40   ;Position the cursor in the MESSAGES zone
@@ -481,9 +481,9 @@ Dead:           ;PUSH AX
          setCur 4,50            ;Position the cursor in the LIFE zone:
          stpChrC 03H,life,04H   ;Update the number of hearts
          setCur 15,40           ;Position the cursor in the MESSAGES zone
-         stpMex lDead           ;Print the message "You hit an asteroid"
+         stpMex deadLabel           ;Print the message "You hit an asteroid"
          setCur 16,40
-         stpMex lInvio          ;Print "Press enter to continue"
+         stpMex enterLabel          ;Print "Press enter to continue"
          POP DX
 
 aspINVIO:        CALL waitKey           ;Wait for the ENTER key
@@ -504,19 +504,19 @@ Next:           CALL outCur     ;Hide the cursor
 Lose:           ;CALL cls
         PUSH DX
         setCur 15,40    ;Position the cursor in the MESSAGES zone
-        stpMex lLose    ;Print "GAME OVER"
+        stpMex gameOverLabel    ;Print "GAME OVER"
         POP DX
         CALL setCar
         JMP Exit
 
 Win:            PUSH DX
         setCur 15,40
-        stpMex lWin
+        stpMex winLabel
         POP DX
         CALL setCar
 
 Exit:           setCur 17,40
-        stpMex fScore   ;Print the final score
+        stpMex finalScoreLabel   ;Print the final score
         setCur 17,59    ;Zone for the score value
         PUSH AX
         MOV AX,score
@@ -526,7 +526,7 @@ Exit:           setCur 17,40
         CALL waitKey    ;Wait for a key
 
 Esci:           setCur 19,40
-        stpMex lEsci    ;Print the exit message
+        stpMex exitLabel    ;Print the exit message
 waitINV:        CALL waitKey    ;Wait for ENTER to exit
         CMP AL,kINVIO
         JNE waitINV
@@ -590,14 +590,14 @@ Rand_1: PUSH    BX          ; Save registers used by the procedure
     PUSH    DS
     PUSH    AX              ; Save the range value passed as input
                             ; (will be used at the end)
-    LEA     DI,PrimoIN      ; Check if this is the first call
+    LEA     DI,IsFirstExecution      ; Check if this is the first call
     CMP Byte Ptr DS:[DI],00H  ; of the procedure that generates the delay.
     JNE     Rand_2          ; If NOT, calculate the new value
 
     MOV     AH,2CH          ; If it's the first call, the procedure
     INT     21H             ; takes a random value from the
-    MOV     DS:[Rnd_Lo],CX  ; CMOS memory that contains the current time.
-    MOV     DS:[Rnd_Hi],DX  ; It uses DOS Function 2CH which
+    MOV     DS:[RandomValueLow],CX  ; CMOS memory that contains the current time.
+    MOV     DS:[RandomValueHigh],DX  ; It uses DOS Function 2CH which
                             ; leaves CH = Hours     (0-23)
                             ;               in CL = Minutes  (0-59)
                             ;       in DH = Seconds (0-59)
@@ -606,11 +606,11 @@ Rand_1: PUSH    BX          ; Save registers used by the procedure
                             ; reloading the initial random variables
 
                             ; Instructions for the first cycle
-Rand_2: MOV     AX,DS:[Rnd_Lo]  ; AH=Hours     (0-23), AL=Minutes    (0-59)
-    MOV     BX,DS:[Rnd_Hi]  ; BH=Seconds (0-59), BL=Hundredths (0-99)
+Rand_2: MOV     AX,DS:[RandomValueLow]  ; AH=Hours     (0-23), AL=Minutes    (0-59)
+    MOV     BX,DS:[RandomValueHigh]  ; BH=Seconds (0-59), BL=Hundredths (0-99)
     MOV     CX,AX           ; CH=Hours     (0-23), CL=Minutes    (0-59)
 
-    MUL     DS:[Costante]   ; AX*Constant=AX*8405H=DX,AX (32-bit number)
+    MUL     DS:[MultiplierValue]   ; AX*Constant=AX*8405H=DX,AX (32-bit number)
 
     SHL     CX,1            ; Random number calculation algorithm
     SHL     CX,1
@@ -627,8 +627,8 @@ Rand_2: MOV     AX,DS:[Rnd_Lo]  ; AH=Hours     (0-23), AL=Minutes    (0-59)
     ADD     AX,1
     ADC     DX,0
 
-    MOV     DS:[Rnd_Lo],AX  ; Save the 32-bit result of the manipulation
-    MOV     DS:[Rnd_Hi],DX  ; in the designated variables
+    MOV     DS:[RandomValueLow],AX  ; Save the 32-bit result of the manipulation
+    MOV     DS:[RandomValueHigh],DX  ; in the designated variables
 
     POP     BX              ; Restore BX with the range value passed in
                             ; input, in AX
