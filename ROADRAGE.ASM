@@ -14,16 +14,16 @@
 ;Stack Segment
 ;---------------------------------------------------------------------------------------------------------
 ;=========================================================================================================
-Pila    SEGMENT PARA STACK
+STACK_SEG    SEGMENT PARA STACK
     db      64 DUP('DADA007 ')              ;8 * 64 = 512 bytes, used to understand how much of the stack is utilized.
-Pila    ENDS                                    ;If more than 512 bytes are used, the string 'DADA007 ' is overwritten.
+STACK_SEG    ENDS                                    ;If more than 512 bytes are used, the string 'DADA007 ' is overwritten.
                         ;The maximum for each segment is 64 kilobytes.
 ;=========================================================================================================
 ;---------------------------------------------------------------------------------------------------------
 ;Variables Segment
 ;---------------------------------------------------------------------------------------------------------
 ;=========================================================================================================
-Dati    SEGMENT PARA
+DATA_SEG    SEGMENT PARA
     ;strings that will be printed on the screen during the execution of the program
     ;note: 13 -> line start, 10 -> line break
         msg1    db      '                         ----> S P A C E - C A R <----',13,10,'$' ;30 CHARACTERS -> 25 SPACES ON THE LEFT TO CENTER
@@ -69,12 +69,12 @@ Dati    SEGMENT PARA
         messageEmpty  db      '                   ','$'
 
     ;variables for Random
-        PrimoIN  DB     00H           ; First execution flag (= 0 yes; <> 0 no)
-        Rnd_Lo   DW     ?             ; current 32-bit random number value
-        Rnd_Hi   DW     ?
-        Costante DW     8405H         ; Multiplier value
+        IsFirstExecution  DB     00H           ; First execution flag (= 0 yes; <> 0 no)
+        RandomValueLow   DW     ?             ; current 32-bit random number value
+        RandomValueHigh    DW     ?
+        MultiplierValue DW     8405H         ; Multiplier value
 
-Dati    ENDS
+DATA_SEG    ENDS
 
 
 
@@ -93,9 +93,9 @@ Dati    ENDS
 ;---------------------------------------------------------------------------------------------------------
 ;=========================================================================================================
 _prog    SEGMENT  PARA 'CODE'    ;allocation of Code Segment, Stack Segment, and Data Segment
-    ASSUME  CS:_prog,        SS:Pila,        DS:Dati        ;ASSUME forces the correct use of the segment for all symbols in the segment
+    ASSUME  CS:_prog,        SS:STACK_SEG,        DS:DATA_SEG        ;ASSUME forces the correct use of the segment for all symbols in the segment
     ORG 0100H       ;reserve the first 100H locations
-    INIZIO: JMP     Main    ;start from the label Main
+    BEGIN: JMP     Main    ;start from the label Main
 
     ;=========================================================================================================
     ;KEYS (CONSTANTS)
@@ -157,7 +157,7 @@ printMessage  MACRO msg       ;prints a message saved in memory (Data Segment)
     PUSH AX
     PUSH BX
     PUSH DX
-    MOV AX,SEG Dati
+    MOV AX,SEG DATA_SEG
     MOV DS,AX
     MOV DX,OFFSET msg
     MOV AH,09H
@@ -175,16 +175,16 @@ CREATE_DELAY MACRO tick      ;creates a delay (1 tick = 0.55 ms -> 18H ticks = 1
 ENDM
 
 ;=========================================================================================================
-
 ;=========================================================================================================
 ;---------------------------------------------------------------------------------------------------------
-;INIZIO DEL PROGRAMMA
+; START OF THE PROGRAM
 ;---------------------------------------------------------------------------------------------------------
 ;=========================================================================================================
 
-;NB:    in DX salver?? la posizione della navicella
-;       in BX salver?? l'ostacolo/moneta/vita (BL=Tipo)  x=asteroide, v=vita, m=moneta
-;       CX ?? il contatore del ciclo
+; NOTE:  In DX, the position of the spaceship will be saved.
+;        In BX, the obstacle/coin/life will be saved (BL=Type): x=asteroid, v=life, m=coin.
+;        CX is the loop counter.
+
 Main:           CALL clearScreen        ;clear screen
         SET_CURSOR 0,0
         printMessage msg1     ;print instructions on the screen
@@ -590,14 +590,14 @@ Rand_1: PUSH    BX          ; Save registers used by the procedure
     PUSH    DS
     PUSH    AX              ; Save the range value passed as input
                             ; (will be used at the end)
-    LEA     DI,PrimoIN      ; Check if this is the first call
+    LEA     DI,IsFirstExecution      ; Check if this is the first call
     CMP Byte Ptr DS:[DI],00H  ; of the procedure that generates the delay.
     JNE     Rand_2          ; If NOT, calculate the new value
 
     MOV     AH,2CH          ; If it's the first call, the procedure
     INT     21H             ; takes a random value from the
-    MOV     DS:[Rnd_Lo],CX  ; CMOS memory that contains the current time.
-    MOV     DS:[Rnd_Hi],DX  ; It uses DOS Function 2CH which
+    MOV     DS:[RandomValueLow],CX  ; CMOS memory that contains the current time.
+    MOV     DS:[RandomValueHigh],DX  ; It uses DOS Function 2CH which
                             ; leaves CH = Hours     (0-23)
                             ;               in CL = Minutes  (0-59)
                             ;       in DH = Seconds (0-59)
@@ -606,11 +606,11 @@ Rand_1: PUSH    BX          ; Save registers used by the procedure
                             ; reloading the initial random variables
 
                             ; Instructions for the first cycle
-Rand_2: MOV     AX,DS:[Rnd_Lo]  ; AH=Hours     (0-23), AL=Minutes    (0-59)
-    MOV     BX,DS:[Rnd_Hi]  ; BH=Seconds (0-59), BL=Hundredths (0-99)
+Rand_2: MOV     AX,DS:[RandomValueLow]  ; AH=Hours     (0-23), AL=Minutes    (0-59)
+    MOV     BX,DS:[RandomValueHigh]  ; BH=Seconds (0-59), BL=Hundredths (0-99)
     MOV     CX,AX           ; CH=Hours     (0-23), CL=Minutes    (0-59)
 
-    MUL     DS:[Costante]   ; AX*Constant=AX*8405H=DX,AX (32-bit number)
+    MUL     DS:[MultiplierValue]   ; AX*Constant=AX*8405H=DX,AX (32-bit number)
 
     SHL     CX,1            ; Random number calculation algorithm
     SHL     CX,1
@@ -627,8 +627,8 @@ Rand_2: MOV     AX,DS:[Rnd_Lo]  ; AH=Hours     (0-23), AL=Minutes    (0-59)
     ADD     AX,1
     ADC     DX,0
 
-    MOV     DS:[Rnd_Lo],AX  ; Save the 32-bit result of the manipulation
-    MOV     DS:[Rnd_Hi],DX  ; in the designated variables
+    MOV     DS:[RandomValueLow],AX  ; Save the 32-bit result of the manipulation
+    MOV     DS:[RandomValueHigh],DX  ; in the designated variables
 
     POP     BX              ; Restore BX with the range value passed in
                             ; input, in AX
@@ -1035,5 +1035,5 @@ returnToDOS ENDP
 ;============================================================================
 
 _prog    ENDS                   ; END OF PROGRAM SEGMENT
-    END     INIZIO          ; End of the program, everything written after is ignored!
+    END     BEGIN          ; End of the program, everything written after is ignored!
 
