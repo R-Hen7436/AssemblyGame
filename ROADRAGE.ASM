@@ -1,12 +1,3 @@
-; FILE: car.asm
-; AUTHOR: Daniel Zotti
-; STUDENT NUMBER: 81200527
-; DESCRIPTION: The program tries to recreate a spaceship game
-; that I used to play as a child, with some differences that I added myself.
-; The goal of the game is to score as many points as possible by avoiding
-; the obstacles that appear in the middle of the road and collecting
-; as many coins as possible.
-; To move, use the arrow keys.
 
 
 ;=========================================================================================================
@@ -35,13 +26,13 @@ DATA_SEG    SEGMENT PARA
         msg6    db      ' Up/Down Arrow:  Increase/Decrease the level (speed)',13,10,'$'
         msgEsc    db      ' ESC:             Exit the game immediately',13,10,'$'
         mPause  db      ' P:               Pause the game',13,10,'$'
-        messageStart db      ' Press ENTER to start the race',13,10,'$'
+        mStart db      ' Press ENTER to start the race',13,10,'$'
 
-        clearStartMessage db      '                                   ','$'        ;to erase messageStart without clearing the screen
+        clearStart db      '                                   ','$'        ;to erase mStart without clearing the screen
         exitLabel   db      'Press ENTER to return to DOS      ','$'
 
         pauseLabel  db      'PAUSE                              ','$'
-        gameOverLabel   db      'GAME OVER                          ','$'
+        gameOverLabel    db      'GAME OVER                          ','$'
         winLabel    db      'You reached the maximum score!     ','$'
 
         finalScoreLabel  db      'Final score: ','$'
@@ -51,9 +42,9 @@ DATA_SEG    SEGMENT PARA
         keyLabel  db      'Press a key to continue           ','$'
         enterLabel  db      'Press ENTER to continue           ','$'
 
-        messageLife   db      'LIFE: ','$'
-        messageLevel  db      'LEVEL: ','$'
-        messageScore  db      'SCORE: ','$'
+        mLife   db      'LIFE: ','$'
+        mLevel  db      'LEVEL: ','$'
+        mScore  db      'SCORE: ','$'
 
         lLife   db      '+1 LIFE     ','$'
         lScore  db      '+1 SCORE    ','$'
@@ -62,16 +53,16 @@ DATA_SEG    SEGMENT PARA
         life    dw      3       ;3 initial lives
         level   dw      1       ;level 1
         score   dw      0H      ;score 0
-        thresholdLevel  dw      10H     ;cycles at the first level 16=10H
+        tLevel  dw      10H     ;cycles at the first level 16=10H
 
         maxScore dw     1000     ;maximum score to end the game
 
-        messageEmpty  db      '                   ','$'
+        mssgdb  db      '                   ','$'
 
     ;variables for Random
         IsFirstExecution  DB     00H           ; First execution flag (= 0 yes; <> 0 no)
         RandomValueLow   DW     ?             ; current 32-bit random number value
-        RandomValueHigh    DW     ?
+        RandomValueHigh   DW     ?
         MultiplierValue DW     8405H         ; Multiplier value
 
 DATA_SEG    ENDS
@@ -100,14 +91,14 @@ _prog    SEGMENT  PARA 'CODE'    ;allocation of Code Segment, Stack Segment, and
     ;=========================================================================================================
     ;KEYS (CONSTANTS)
     ;=========================================================================================================
-    ESC_KEY    EQU     1bh             ;ESC key
-    ENTER_KEY  EQU     0dh             ;ENTER key
+    ESC_KEY     EQU     1bh             ;ESC key
+    ENTER_KEY EQU     0dh             ;ENTER key
     CURSOR_UP     EQU     4800h           ;cursor movement up
     CURSOR_DOWN    EQU     5000h           ;cursor movement down
-    CURSOR_RIGHT     EQU     4d00h           ;cursor movement right
-    CURSOR_LEFT     EQU     4b00h           ;cursor movement left
-    FRAME_RIGHT_LIMIT   EQU     27              ;right limit for the spaceship (right column of the frame)
-    FRAME_LEFT_LIMIT   EQU     2               ;left limit for the spaceship (left column of the frame)
+    CURSOR_RIGHT    EQU     4d00h           ;cursor movement right
+    CURSOR_LEFT    EQU     4b00h           ;cursor movement left
+    FRAME_RIGHT  EQU     27              ;right limit for the spaceship (right column of the frame)
+    FRAME_LEFT_LIMIT  EQU     2               ;left limit for the spaceship (left column of the frame)
 
 ;=========================================================================================================
 ;---------------------------------------------------------------------------------------------------------
@@ -125,11 +116,11 @@ ENDM
 PRINT_TTY_CHAR MACRO char              ;prints in TTY mode (updates the cursor)
     PUSH AX
     MOV AL,char             ;select the character passed as a parameter
-    CALL writeTTY           ;calls the procedure
+    CALL WRITE_TTY           ;calls the procedure
     POP AX
 ENDM
 ;=========================================================================================================
-printCharacterCount MACRO char,num,col      ;prints n colored characters
+PRINT_COLOR_CHARS MACRO char,num,col      ;prints n colored characters
     PUSH AX
     PUSH CX
     MOV AL,char             ;select the character passed as a parameter
@@ -153,7 +144,7 @@ Random  MACRO num       ;remember to PUSH AX if necessary
     CALL rand
 ENDM
 ;=========================================================================================================
-printMessage  MACRO msg       ;prints a message saved in memory (Data Segment)
+PRINT_MESSAGE  MACRO msg       ;prints a message saved in memory (Data Segment)
     PUSH AX
     PUSH BX
     PUSH DX
@@ -175,55 +166,55 @@ CREATE_DELAY MACRO tick      ;creates a delay (1 tick = 0.55 ms -> 18H ticks = 1
 ENDM
 
 ;=========================================================================================================
+
 ;=========================================================================================================
 ;---------------------------------------------------------------------------------------------------------
-; START OF THE PROGRAM
+;BEGIN DEL PROGRAMMA
 ;---------------------------------------------------------------------------------------------------------
 ;=========================================================================================================
 
-; NOTE:  In DX, the position of the spaceship will be saved.
-;        In BX, the obstacle/coin/life will be saved (BL=Type): x=asteroid, v=life, m=coin.
-;        CX is the loop counter.
-
-Main:           CALL clearScreen        ;clear screen
+;NB:    in DX salver?? la posizione della navicella
+;       in BX salver?? l'ostacolo/moneta/vita (BL=Tipo)  x=asteroide, v=vita, m=moneta
+;       CX ?? il contatore del ciclo
+Main:           CALL cls        ;clear screen
         SET_CURSOR 0,0
-        printMessage msg1     ;print instructions on the screen
+        PRINT_MESSAGE msg1     ;print instructions on the screen
         SET_CURSOR 2,0
-        printMessage msg2
-        printMessage msg2b
-        printMessage msg3
-        printMessage msg4
-        printMessage msg5
-        printMessage msg6
-        printMessage msgEsc
-        printMessage mPause
+        PRINT_MESSAGE msg2
+        PRINT_MESSAGE msg2b
+        PRINT_MESSAGE msg3
+        PRINT_MESSAGE msg4
+        PRINT_MESSAGE msg5
+        PRINT_MESSAGE msg6
+        PRINT_MESSAGE msgEsc
+        PRINT_MESSAGE mPause
         SET_CURSOR 11,1
-        printMessage keyLabel
-        CALL hideCursor
+        PRINT_MESSAGE keyLabel
+        CALL outCur
         CALL waitKey    ;wait for a key to continue
 
 Start:          ;every time you hit an asteroid, you restart from here
-        CALL clearScreen        ;clear screen
-        CALL drawBorder    ;draw border
+        CALL cls        ;clear screen
+        CALL wBordo     ;draw border
 
     ;PRINT LIVES
         SET_CURSOR 4,40
-        printMessage messageLife
+        PRINT_MESSAGE mLife
         SET_CURSOR 4,50
-        printCharacterCount 03H,life,04H    ;print hearts
+        PRINT_COLOR_CHARS 03H,life,04H    ;print hearts
 
     ;PRINT LEVEL
         SET_CURSOR 6,40
-        printMessage messageLevel
+        PRINT_MESSAGE mLevel
         SET_CURSOR 6,50
-        printCharacterCount 09H,level,09H   ;print dots (representing the level number)
+        PRINT_COLOR_CHARS 09H,level,09H   ;print dots (representing the level number)
 
     ;PRINT SCORE
         SET_CURSOR 8,40
-        printMessage messageScore
+        PRINT_MESSAGE mScore
         SET_CURSOR 8,50
         MOV AX,score
-        CALL wordToDecimal           ;print the score
+        CALL word2dec           ;print the score
 
     ;POSITION THE SPACESHIP AT THE BOTTOM CENTER
         MOV DH,20       ;row
@@ -232,18 +223,18 @@ Start:          ;every time you hit an asteroid, you restart from here
 
 
         SET_CURSOR 15,40    ;AREA WHERE MESSAGES ARE PRINTED
-        printMessage messageStart  ;start of level, waits for Enter key
-        CALL hideCursor
-requestEnter:       CALL waitKey    ;wait for the Enter key
+        PRINT_MESSAGE mStart  ;start of level, waits for Enter key
+        CALL outCur
+reqINVIO:       CALL waitKey    ;wait for the Enter key
         CMP AL,ENTER_KEY
-        JNE requestEnter
+        JNE reqINVIO
         SET_CURSOR 15,40
-        printMessage clearStartMessage
+        PRINT_MESSAGE clearStart
 
 
-        ;CALL hideCursor    ;hide the cursor
+        ;CALL outCur    ;hide the cursor
         MOV BX,0000H    ;initialize obstacle/life/coin controller each cycle
-Loop1:          MOV CH,BYTE PTR thresholdLevel   ;set the initial level (speed??)
+Ciclo:          MOV CH,BYTE PTR tLevel   ;set the initial level (speed??)
         MOV CL,0        ;initialize the cycle counter to increment
 
 
@@ -255,38 +246,38 @@ Loop1:          MOV CH,BYTE PTR thresholdLevel   ;set the initial level (speed??
 
         PUSH DX
         SET_CURSOR 15,40    ;clear the interactive message
-        printMessage messageEmpty   ;from the previous cycle
+        PRINT_MESSAGE mssgdb   ;from the previous cycle
         POP DX
         CMP BL,'m'      ;if a coin is collected, increment the score
-         JE addCoin
+         JE addMon
         CMP BL,'v'
-         JE addLife     ;if a heart is collected, increment the lives (unless there are already 5)
+         JE addVita     ;if a heart is collected, increment the lives (unless there are already 5)
 
 Continue3:      JMP AspKey
 
-addCoin:         PUSH AX         ;coin collected
+addMon:         PUSH AX         ;coin collected
          MOV AX,score   ;could also do directly "INC score"
          ;INC AX         ;increment score
          ADD AX,level    ;instead of adding 1, add the level value
          MOV score,AX
          SET_CURSOR 8,50    ;position the cursor in the SCORE area:
-         CALL wordToDecimal  ;print the ASCII/decimal value of the score variable
+         CALL word2dec  ;print the ASCII/decimal value of the score variable
          SET_CURSOR 15,40   ;position the cursor in the MESSAGES area
-         printMessage lScore  ;print +1 SCORE
+         PRINT_MESSAGE lScore  ;print +1 SCORE
         POP AX
         MOV BX,0000H    ;initialize obstacle/life/coin controller
         JMP AspKey
 
-addLife:        CMP life,5      ;heart collected
+addVita:        CMP life,5      ;heart collected
         JAE life5       ;if lives are greater than or equal to 5, don't add more lives
         PUSH AX
          MOV AX,life
          INC AX         ;increment the life variable
          MOV life,AX
          SET_CURSOR 4,50    ;set the cursor in the LIFE area:
-         printCharacterCount 03H,life,04H   ;print as many red hearts as lives
+         PRINT_COLOR_CHARS 03H,life,04H   ;print as many red hearts as lives
          SET_CURSOR 15,40   ;position the cursor in the MESSAGES area
-         printMessage lLife   ;print +1 LIFE
+         PRINT_MESSAGE lLife   ;print +1 LIFE
         POP AX
 life5:          MOV BX,0000H    ;initialize obstacle/life/coin controller
         JMP AspKey
@@ -303,40 +294,40 @@ AspKey:
         CALL pressKey   ;otherwise, check if a key is pressed
         JZ AspKey        ;if no key is pressed, wait again
          CALL waitKey    ;otherwise, check which key was pressed
-         CMP AL,ESC_KEY     ;pressed ESC
-         JE  Exit2       ;exit to DOS
+         CMP AL,ESC_KEY    ;pressed ESC
+         JE  Esci2       ;exit to DOS
          CMP AL,'P'      ;pressed P
          JE I_Pause      ;pause the game
          CMP AL,'p'      ;pressed p (lowercase)
          JE I_Pause      ;pause the game
          CMP AX,CURSOR_RIGHT      ;pressed Right arrow - CURSOR_RIGHT EQU 4D00H
-         JE Right2
+         JE Destra2
          CMP AX,CURSOR_LEFT      ;pressed Left arrow - CURSOR_LEFT EQU 4B00H
-         JE Left2
-         CMP AX,CURSOR_UP      ;pressed Up arrow
-         JE Up2
+         JE Sinistra2
+         CMP AX,CURSOR_UP     ;pressed Up arrow
+         JE Su2
          CMP AX,CURSOR_DOWN     ;pressed Down arrow
-         JE Down2
+         JE Giu2
          ;CMP AL,'h'      ;INCREASE SCORE BY 100
          ;JE HintA2
          ;CMP AL,'H'      ;DECREASE SCORE BY 100
          ;JE HintB2
-         JMP Key2      ;go to print the key pressed
+         JMP Tasto2      ;go to print the key pressed
 
 
 ;----------labels for JUMP too long-------------
 ;Win2:           JMP Win
 Dead2:          JMP Dead
-Right2:        JMP Right
-Left2:      JMP Left
-Exit2:          JMP Esci
+Destra2:        JMP Destra
+Sinistra2:      JMP Sinistra
+Esci2:          JMP Esci
 Continue2:      JMP Continue
-Key2:         JMP Tasto
-Up2:            JMP Su
-Down2:           JMP Giu
+Tasto2:         JMP Tasto
+Su2:            JMP Su
+Giu2:           JMP Giu
 ;HintA2:         JMP HintA
 ;HintB2:         JMP HintB
-;WaitKey2:        JMP AspKey
+;AspKey2:        JMP AspKey
 ;------------labels for JUMP too long-----------
 
 
@@ -347,17 +338,17 @@ I_Pause:        PUSH AX
         PUSH CX
         PUSH DX
         SET_CURSOR 15,40    ;Write "PAUSE" in the MESSAGE area
-        printMessage pauseLabel
+        PRINT_MESSAGE pauseLabel
 Pause:          CALL waitKey    ;Wait for a key
-        CMP AL,ESC_KEY     ;ESC key
-        JE Exit2         ;Go to Exit
+        CMP AL,ESC_KEY      ;ESC key
+        JE Esci2         ;Go to Exit
         CMP AL,'P'      ;P key
         JE F_Pause       ;End the Pause
         CMP AL,'p'      ;p key
         JE F_Pause       ;End the Pause
         JMP Pause       ;Otherwise, continue the pause -> loop Pause
 F_Pause:        SET_CURSOR 15,40    ;Clear the "PAUSE" text
-        printMessage messageEmpty
+        PRINT_MESSAGE mssgdb
         POP DX
         POP CX
         POP BX
@@ -365,11 +356,11 @@ F_Pause:        SET_CURSOR 15,40    ;Clear the "PAUSE" text
         JMP AspKey      ;Go to AspKey
 ;-----Pause Management-------------------------------
 
-WaitKey2:        JMP AspKey
+AspKey2:        JMP AspKey
 
-Right:         ;Move the spaceship to the right
-        CMP DL,FRAME_RIGHT_LIMIT    ;Check if the spaceship has reached the right edge
-        JE WaitKey2      ;If it has reached the right limit and I want to move it further right, the program will block it here
+Destra:         ;Move the spaceship to the right
+        CMP DL,FRAME_RIGHT    ;Check if the spaceship has reached the right edge
+        JE AspKey2      ;If it has reached the right limit and I want to move it further right, the program will block it here
          INC DX         ;Otherwise, I can move it right by one character
          PUSH DX
          SUB DX,2       ;Move the cursor to the area where the spaceship was before moving right
@@ -386,9 +377,9 @@ Right:         ;Move the spaceship to the right
     ;End control character printing
         JMP AspKey      ;Wait for the next key
 
-Left:       ;Move the spaceship to the left
-        CMP DL,FRAME_LEFT_LIMIT    ;Check if the spaceship has reached the left edge
-        JE WaitKey2      ;If it has reached the left limit and I want to move it further left, the program will block it here
+Sinistra:       ;Move the spaceship to the left
+        CMP DL,FRAME_LEFT_LIMIT   ;Check if the spaceship has reached the left edge
+        JE AspKey2      ;If it has reached the left limit and I want to move it further left, the program will block it here
          DEC DX         ;Otherwise, I can move it left by one character
          PUSH DX
          ADD DX,2       ;Move the cursor to where the spaceship was before being moved left
@@ -412,16 +403,16 @@ Su:             ;Up one level
          MOV AX,level   ;Otherwise, add a level
          INC AX
          MOV level,AX
-          MOV AX,thresholdLevel ;Decrease the cycle duration by 2 ticks
+          MOV AX,tLevel ;Decrease the cycle duration by 2 ticks
           SUB AX,2
-          MOV thresholdLevel,AX
+          MOV tLevel,AX
          SET_CURSOR 6,50    ;Position the cursor in the LEVEL zone:
-         printCharacterCount 09H,level,09H  ;Print the level number (blue dots)
+         PRINT_COLOR_CHARS 09H,level,09H  ;Print the level number (blue dots)
          SET_CURSOR 15,40   ;Position the cursor in the MESSAGES zone
-         printMessage lLevelU ;Print +1 LEVEL
+         PRINT_MESSAGE lLevelU ;Print +1 LEVEL
         POP AX
 level8:          MOV BX,0000H    ;Initialize the obstacle/life/coin controller
-        JMP waitKey
+        JMP aspKey
 
 Giu:            ;Down one level
         CMP level,1
@@ -430,18 +421,18 @@ Giu:            ;Down one level
          MOV AX,level
          DEC AX     ;Otherwise, decrease the level
          MOV level,AX
-          MOV AX,thresholdLevel ;Increase the cycle duration by 2 ticks
+          MOV AX,tLevel ;Increase the cycle duration by 2 ticks
           ADD AX,2
-          MOV thresholdLevel,AX
+          MOV tLevel,AX
          SET_CURSOR 6,50
-         printMessage messageEmpty  ;Clear the previous levels to print fewer dots (otherwise the level decrement won't be visible)
+         PRINT_MESSAGE mssgdb  ;Clear the previous levels to print fewer dots (otherwise the level decrement won't be visible)
          SET_CURSOR 6,50    ;Position the cursor in the LEVEL zone:
-         printCharacterCount 09H,level,09H  ;Print the level number (blue dots)
+         PRINT_COLOR_CHARS 09H,level,09H  ;Print the level number (blue dots)
          SET_CURSOR 15,40   ;Position the cursor in the MESSAGES zone
-         printMessage lLevelD ;Print -1 LEVEL
+         PRINT_MESSAGE lLevelD ;Print -1 LEVEL
         POP AX
 level1:          MOV BX,0000H    ;Initialize the obstacle/life/coin controller
-        JMP waitKey
+        JMP aspKey
 
 Tasto:          ;If I press any key, nothing happens
         ;Leave the label for future use if I want to use other keys
@@ -453,19 +444,19 @@ Tasto:          ;If I press any key, nothing happens
         ;POP DX
         JMP AspKey
 
-Continue:       CALL goDown      ;Make the obstacles "fall" by one row
+Continue:       CALL goGIU      ;Make the obstacles "fall" by one row
         ;Now draw the new obstacles/life/coin (with different probabilities)
         Random 99      ;Random number between 0 and 99 (100 total numbers)
         CMP AX,95
-        JAE Live        ;Greater than or equal to 95 -> life (5% chance)
+         JAE Vita        ;Greater than or equal to 95 -> life (5% chance)
         CMP AX,25
-         JB Coin      ;Less than 25 -> coin (25% chance)
-        CALL writeObstacle       ;Otherwise -> print an obstacle (the remaining 73% chance)
+         JB Moneta      ;Less than 25 -> coin (25% chance)
+        CALL wOst       ;Otherwise -> print an obstacle (the remaining 73% chance)
         JMP Next
 
-Live:           CALL writeLife      ;Print a life
+Vita:           CALL wLife      ;Print a life
         JMP Next
-Coin:         CALL writeCoin       ;Print a coin
+Moneta:         CALL wMon       ;Print a coin
         JMP Next
 
 Dead:           ;PUSH AX
@@ -479,19 +470,19 @@ Dead:           ;PUSH AX
          CALL setCar    ;Otherwise, restart the game with one less life
          PUSH DX
          SET_CURSOR 4,50            ;Position the cursor in the LIFE zone:
-         printCharacterCount 03H,life,04H   ;Update the number of hearts
+         PRINT_COLOR_CHARS 03H,life,04H   ;Update the number of hearts
          SET_CURSOR 15,40           ;Position the cursor in the MESSAGES zone
-         printMessage deadLabel          ;Print the message "You hit an asteroid"
+         PRINT_MESSAGE deadLabel           ;Print the message "You hit an asteroid"
          SET_CURSOR 16,40
-         printMessage enterLabel          ;Print "Press enter to continue"
+         PRINT_MESSAGE enterLabel          ;Print "Press enter to continue"
          POP DX
 
-waitEnter:        CALL waitKey           ;Wait for the ENTER key
+aspINVIO:        CALL waitKey           ;Wait for the ENTER key
         CMP AL,ENTER_KEY           ;To restart the game with one less life
-        JNE waitEnter
+        JNE aspINVIO
         JMP Start
 
-Next:           CALL hideCursor     ;Hide the cursor
+Next:           CALL outCur     ;Hide the cursor
 
         PUSH AX         ;Check if I've reached the maximum score
         MOV AX,maxScore ;Can't compare two variables directly
@@ -499,39 +490,39 @@ Next:           CALL hideCursor     ;Hide the cursor
         POP AX
         JAE Win
 
-        JMP Loop1       ;Continue with the Loop and go to the Loop1 label
+        JMP Ciclo       ;Continue with the Loop and go to the Ciclo label
 
-Lose:           ;CALL clearScreen
+Lose:           ;CALL cls
         PUSH DX
         SET_CURSOR 15,40    ;Position the cursor in the MESSAGES zone
-        printMessage gameOverLabel    ;Print "GAME OVER"
+        PRINT_MESSAGE gameOverLabel    ;Print "GAME OVER"
         POP DX
         CALL setCar
         JMP Exit
 
 Win:            PUSH DX
         SET_CURSOR 15,40
-        printMessage winLabel 
+        PRINT_MESSAGE winLabel
         POP DX
         CALL setCar
 
 Exit:           SET_CURSOR 17,40
-        printMessage finalScoreLabel   ;Print the final score
+        PRINT_MESSAGE finalScoreLabel   ;Print the final score
         SET_CURSOR 17,59    ;Zone for the score value
         PUSH AX
         MOV AX,score
-        CALL wordToDecimal   ;Convert the score to decimal value
+        CALL word2dec   ;Convert the score to decimal value
         POP AX
         ;POP DX
         CALL waitKey    ;Wait for a key
 
 Esci:           SET_CURSOR 19,40
-        printMessage exitLabel    ;Print the exit message
-waitInput:        CALL waitKey    ;Wait for ENTER to exit
+        PRINT_MESSAGE exitLabel    ;Print the exit message
+waitINV:        CALL waitKey    ;Wait for ENTER to exit
         CMP AL,ENTER_KEY
-        JNE waitInput
-        CALL clearScreen
-        CALL returnToDOS   ;Call the procedure to return to DOS
+        JNE waitINV
+        CALL cls
+        CALL tornaDOS   ;Call the procedure to return to DOS
 
 
 ;=========================================================================================================
@@ -539,44 +530,44 @@ waitInput:        CALL waitKey    ;Wait for ENTER to exit
 ;PROCEDURE
 ;---------------------------------------------------------------------------------------------------------
 ;============================================================================
-drawBorder PROC NEAR        ; Draw the border where the game is played
+wBordo PROC NEAR        ; Draw the border where the game is played
         ; PRINT TOP LINE
         SET_CURSOR 0,0      ; Position cursor at the top left
         PRINT_TTY_CHAR 0DAH    ; Print the top left corner
         MOV CX,28       ; Set loop to 28 iterations (columns)
-LoopR1:        PRINT_TTY_CHAR 0C4H    ; Print the top line
-        LOOP LoopR1    ; Repeat until reaching column 29
+CicloR1:        PRINT_TTY_CHAR 0C4H    ; Print the top line
+        LOOP CicloR1    ; Repeat until reaching column 29
         PRINT_TTY_CHAR 0BFH    ; Print the top right corner
 
         ; PRINT LEFT COLUMN
         MOV DH,01H      ; Set row to 2
         MOV DL,00H      ; Set column to 0 (fixed) - first column
         MOV CX,20       ; Set loop to 20 iterations (rows)
-LoopC1:        CALL posCur     ; Position cursor at DH,DL (row,column)
+CicloC1:        CALL posCur     ; Position cursor at DH,DL (row,column)
         PRINT_TTY_CHAR 0B3H    ; Print the character | for the left column
         inc DH          ; Increment the counter (move to the next row)
-        LOOP LoopC1    ; Repeat 20 times
+        LOOP CicloC1    ; Repeat 20 times
 
         ; PRINT RIGHT COLUMN
         MOV DH,01H      ; Set row to 2
         MOV DL,29       ; Set column to 29 (fixed) - 30th column
         MOV CX,0020     ; Set loop to 20 iterations (rows)
-LoopC2:        CALL posCur     ; Position cursor at DH,DL (row,column)
+CicloC2:        CALL posCur     ; Position cursor at DH,DL (row,column)
         PRINT_TTY_CHAR 0B3H    ; Print the character | for the right column
         inc DH          ; Increment the counter (move to the next row)
-        LOOP LoopC2    ; Repeat 20 times
+        LOOP CicloC2    ; Repeat 20 times
 
         ; PRINT BOTTOM LINE
         SET_CURSOR 21,0     ; Position cursor at row 22, column 0
         PRINT_TTY_CHAR 0C0H    ; Print the bottom left corner
         MOV CX,28       ; Set loop to 28 iterations (columns)
-LoopR2:        PRINT_TTY_CHAR 0C4H    ; Print the hyphen to form the line
-        LOOP LoopR2    ; Repeat 28 times
+CicloR2:        PRINT_TTY_CHAR 0C4H    ; Print the hyphen to form the line
+        LOOP CicloR2    ; Repeat 28 times
         PRINT_TTY_CHAR 0D9H    ; Print the bottom right corner
 
         ; I HAVE CREATED A RECTANGLE OF 22 ROWS X 30 COLUMNS
 
-drawBorder ENDP
+wBordo ENDP
 ;============================================================================
 rand PROC NEAR        ; Function that generates a random number between 0 < n < AX
     OR      AX,AX           ; If the value of the range passed as a parameter
@@ -700,7 +691,7 @@ Delay_3:
 
 delay ENDP
 ;=========================================================================================================
-writeLife PROC NEAR         ; prints a random heart
+wLife PROC NEAR         ; prints a random heart
     PUSH DX
     PUSH CX
     PUSH BX
@@ -718,9 +709,9 @@ writeLife PROC NEAR         ; prints a random heart
     POP CX
     POP DX
     RET
-writeLife ENDP
+wLife ENDP
 ;=========================================================================================================
-writeCoin PROC NEAR       ; prints a random coin
+wMon PROC NEAR       ; prints a random coin
     PUSH DX
     PUSH CX
     PUSH BX
@@ -738,9 +729,9 @@ writeCoin PROC NEAR       ; prints a random coin
     POP CX
     POP DX
     RET
-writeCoin ENDP
+wMon ENDP
 ;=========================================================================================================
-writeObstacle PROC NEAR       ; prints a random obstacle
+wOst PROC NEAR       ; prints a random obstacle
     PUSH DX
     PUSH CX
     PUSH BX
@@ -758,9 +749,9 @@ writeObstacle PROC NEAR       ; prints a random obstacle
     POP CX
     POP DX
     RET             ; return
-writeObstacle ENDP
+wOst ENDP
 ;============================================================================
-goDown PROC NEAR
+goGIU PROC NEAR
     PUSH AX
     PUSH BX
     PUSH CX
@@ -779,10 +770,10 @@ goDown PROC NEAR
     POP BX
     POP AX
     RET             ; return
-goDown ENDP
+goGIU ENDP
 
 ;=========================================================================================================
-writeTTY PROC Near      ;AL=char, CX=number of times
+WRITE_TTY PROC Near      ;AL=char, CX=number of times
     PUSH BX
     MOV BH,00H      ;Page 0
     MOV BL,70H      ;White on black
@@ -790,7 +781,7 @@ writeTTY PROC Near      ;AL=char, CX=number of times
     INT 10H
     POP BX
     RET             ;Returns
-writeTTY ENDP
+WRITE_TTY ENDP
 ;=========================================================================================================
 WRITE_COLOR PROC Near      ;AL=char, CX=number of times, BL=color
     MOV BH,00H      ;Page 0
@@ -861,7 +852,7 @@ setCar PROC NEAR        ;DH=row, DL=column
     JNE asd1       ;skip the check
     CALL checkCar   ;check if something has been touched
 asd1:    CALL posCur
-    PRINT_BW_CHAR 1EH    ;I can print the central character
+    PRINT_BW_CHAR 254    ;I can print the central character
 
     INC DX          ;move to the right
     CALL posCur
@@ -869,7 +860,7 @@ asd1:    CALL posCur
     JNE asd2       ;skip the check
     CALL checkCar
 asd2:   CALL posCur
-    PRINT_BW_CHAR '>'    ;print the right character
+    PRINT_BW_CHAR '|'    ;print the right character
 
     SUB DX,2        ;move 2 positions to the left
     CALL posCur
@@ -877,7 +868,7 @@ asd2:   CALL posCur
     JNE asd3       ;skip the check
     CALL checkCar
 asd3:   CALL posCur
-    PRINT_BW_CHAR '<'    ;I can print the left character
+    PRINT_BW_CHAR '|'    ;I can print the left character
 
     ;PRINT CHARACTER FOR DEBUGGING
     ;PUSH DX
@@ -947,7 +938,7 @@ CONT_1:   RET
 checkCar ENDP
 
 ;=========================================================================================================
-wordToDecimal PROC NEAR      ; Converts the provided hexadecimal word in AX to the corresponding ASCII characters
+Word2Dec PROC NEAR      ; Converts the provided hexadecimal word in AX to the corresponding ASCII characters
     PUSH    AX
     PUSH    BX
     PUSH    DX
@@ -992,7 +983,7 @@ Byt2_4: CALL    STAasci     ; Prints the value of Units
     POP     BX
     POP     AX
     RET
-wordToDecimal ENDP
+Word2Dec ENDP
 ;========================================================================================================
 STAasci PROC NEAR             ; Prints the ASCII value of the number in AL
     PUSH    AX
@@ -1009,7 +1000,7 @@ readCur PROC NEAR             ; Reads the value of the ASCII character pointed t
     RET
 readCur ENDP
 ;=========================================================================================================
-hideCursor PROC    Near             ; Procedure to hide the cursor from the screen
+outCur PROC    Near             ; Procedure to hide the cursor from the screen
     PUSH CX                 ; Based on the procedure to resize the cursor (in height)
     PUSH AX                 ; (If bit 5 of CH is 1, the cursor disappears)
     MOV CH,20H              ; Starting pixel line
@@ -1019,19 +1010,19 @@ hideCursor PROC    Near             ; Procedure to hide the cursor from the scre
     POP AX
     POP CX
     RET                     ; Returns
-hideCursor ENDP
+outCur ENDP
 ;============================================================================
-clearScreen PROC Near
+cls PROC Near
     MOV AL,03H              ; Video mode 80 columns x 24 rows
     MOV AH,00H              ; Also creates a clear screen
     INT 10H
     RET
-clearScreen ENDP
+cls ENDP
 ;============================================================================
-returnToDOS PROC NEAR
+tornaDOS PROC NEAR
     MOV AH,4CH
     INT 21H
-returnToDOS ENDP
+tornaDOS ENDP
 ;============================================================================
 
 _prog    ENDS                   ; END OF PROGRAM SEGMENT

@@ -29,7 +29,6 @@ Here you have a [demo video](https://youtu.be/O3vanqQIQrU) on YouTube
 - Mount the folder on **C:** drive: `mount c /home/daniel/dosbox/8086`
 
 in the dosbox
-C:\Users\RHEN\Documents\GitHub\AssemblyGame
 - mount c C:\Users\RHEN\Downloads\spacecar
 - c:
 - MASM SPACECAR.ASM
@@ -54,8 +53,3 @@ C:\Users\RHEN\Documents\GitHub\AssemblyGame
 - Install `MS-DOS 6.22`
 - Install `MASM 6.11`
 - Install `LINK`
-
-
-
-
-
